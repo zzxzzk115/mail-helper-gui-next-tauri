@@ -60,10 +60,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
+        "height": 800,
+        "resizable": false,
         "title": "Mail Helper Next",
-        "width": 800
+        "width": 480
       }
     ]
   }

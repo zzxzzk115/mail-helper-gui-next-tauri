@@ -1,53 +1,22 @@
-import {
-  Container,
-  Button,
-  Text,
-  Image,
-  Spacer
-} from "@nextui-org/react";
+import LocalStorageExtend from "../utils/LocalStorageExtend";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 
-import {
-  Alert,
-  AlertTitle
-} from "@mui/material";
+const App = () => {
 
-import {
-  Home
-} from "@mui/icons-material";
+  const router = useRouter();
+  const firstLoadKey = "is-first-load";
 
-import useLocalStorage from "../utils/useLocalStorage";
+  useEffect(() => {
+    let isFirstLoad = LocalStorageExtend.getFromStorage(firstLoadKey, true);
+    if (isFirstLoad) {
+      router.replace('/hello');
+    } else {
+      router.replace('/home');
+    }
+  }, []);
 
-function App() {
-
-  const [isFirstLoad, setIsFirstLoad] = useLocalStorage("is-first-load", true);
-
-  function start() {
-    setIsFirstLoad(false);
-  }
-
-  return (
-    isFirstLoad 
-    ?
-    <Container
-      display="flex"
-      direction="column"
-      justify="center"
-      alignItems="center"
-      style={{ marginTop: 30 }}>
-      <Alert severity="info" icon={<Home fontSize="inherit" />}>
-        <AlertTitle>Tips</AlertTitle>
-        The app is still developing !
-      </Alert>
-      <Spacer y={2} />
-      <Image src="/logo.png" width={150} height={150} />
-      <Spacer y={2} />
-      <Text h1>Welcome to Mail Helper Next!</Text>
-      <Spacer y={2} />
-      <Button onPress={start}>Start</Button>
-    </Container>
-    :
-    <Text>Hello world!</Text>
-  );
+  return;
 }
 
 export default App;
