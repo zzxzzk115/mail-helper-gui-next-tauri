@@ -15,13 +15,19 @@ import {
   Home
 } from "@mui/icons-material";
 
+import useLocalStorage from "../utils/useLocalStorage";
+
 function App() {
 
-  function start() {
+  const [isFirstLoad, setIsFirstLoad] = useLocalStorage("is-first-load", true);
 
+  function start() {
+    setIsFirstLoad(false);
   }
 
   return (
+    isFirstLoad 
+    ?
     <Container
       display="flex"
       direction="column"
@@ -38,8 +44,9 @@ function App() {
       <Text h1>Welcome to Mail Helper Next!</Text>
       <Spacer y={2} />
       <Button onPress={start}>Start</Button>
-
     </Container>
+    :
+    <Text>Hello world!</Text>
   );
 }
 
