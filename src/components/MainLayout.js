@@ -5,12 +5,24 @@ import {
   Paper
 } from "@mui/material";
 import { Home, Settings, Info } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 const MainLayout = ({ children }) => {
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState("/home");
   const router = useRouter();
+
+  useEffect(() => {
+    const handleRouteChange = (url, { shallow }) => {
+      setTabValue(url);
+    }
+
+    router.events.on("routeChangeStart", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    }
+  }, []);
 
   function onLink(href) {
     router.replace(href);
@@ -23,13 +35,10 @@ const MainLayout = ({ children }) => {
         <BottomNavigation
           showLabels
           value={tabValue}
-          onChange={(event, newValue) => {
-            setTabValue(newValue);
-          }}
         >
-          <BottomNavigationAction label="Home" icon={<Home />} onClick={() => onLink('/home')}/>
-          <BottomNavigationAction label="Settings" icon={<Settings />} onClick={() => onLink('/settings')}/>
-          <BottomNavigationAction label="About" icon={<Info />} onClick={() => onLink('/about')}/>
+          <BottomNavigationAction value="/home" label="Home" icon={<Home />} onClick={() => onLink('/home')} />
+          <BottomNavigationAction value="/settings" label="Settings" icon={<Settings />} onClick={() => onLink('/settings')} />
+          <BottomNavigationAction value="/about" label="About" icon={<Info />} onClick={() => onLink('/about')} />
         </BottomNavigation>
       </Paper>
     </Box>

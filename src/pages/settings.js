@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import MainLayout from "../components/mainLayout";
+import MainLayout from "../components/MainLayout";
 
 const SettingsPage = () => {
   return (
