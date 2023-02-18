@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
 const MainLayout = ({ children }) => {
+
   const [tabValue, setTabValue] = useState("/home");
   const router = useRouter();
 
@@ -17,15 +18,17 @@ const MainLayout = ({ children }) => {
       setTabValue(url);
     }
 
+    // Register routeChangeStart event
     router.events.on("routeChangeStart", handleRouteChange);
 
+    // Unregister routeChangeStart event
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     }
   }, []);
 
   function onLink(href) {
-    router.replace(href);
+    router.push(href);
   };
 
   return (

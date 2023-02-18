@@ -20,11 +20,26 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": ["https://**", "http://**"]
+        "scope": [
+          "https://**",
+          "http://**"
+        ]
       },
       "fs": {
         "all": true,
-        "scope": ["$APPDATA/*"]
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true,
+        "exists": true,
+        "scope": [
+          "$HOME/.mhgn-conf.json",
+          "$HOME/*"
+        ]
       },
       "dialog": {
         "all": true,
@@ -77,10 +92,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 800,
+        "height": 960,
         "resizable": false,
         "title": "Mail Helper Next",
-        "width": 480
+        "width": 540
       }
     ]
   }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import LocalStorageExtend from "./LocalStorageExtend";
+import LocalStorageExtend from "../utils/LocalStorageExtend";
 
 const useLocalStorageState = (key, fallbackValue) => {
 
