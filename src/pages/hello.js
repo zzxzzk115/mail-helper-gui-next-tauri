@@ -19,7 +19,7 @@ const HelloPage = () => {
         flexGrow={1}
         justifyContent="center"
         alignItems="center"
-        marginTop={20}
+        marginTop={30}
       >
         <Typography variant="h3">Mail Helper Next</Typography>
         <img src="/logo.png" width={150} height={150} />

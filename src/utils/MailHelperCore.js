@@ -1,101 +1,119 @@
 import { fetch, Body } from "@tauri-apps/api/http";
-import { Campaign, Gophish, Group, Page, SMTP, Template, User } from "@zzxzzk115/gophish-api";
-
-Gophish.fetch_handler = fetch;
-Gophish.body_packer = Body.json;
+const { Campaign, Gophish, Group, Page, SMTP, Template, User } = require("@zzxzzk115/gophish-api");
 
 export default class MailHelperCore {
 
   constructor(config) {
+    this.gophish_api_key = config.gophish_api_key;
+    this.gophish_host = config.gophish_host;
     this.smtp_host = config.smtp_host;
     this.smtp_user_name = config.smtp_user_name;
-    this.smtp_user_password = confg.smtp_user_password;
+    this.smtp_user_password = config.smtp_user_password;
     this.ignore_certificate_errors = config.ignore_certificate_errors;
 
-    this.gophish = new Gophish({api_key: this.gophish_api_key, host: this.gophish_host});
+    this.gophish = new Gophish({ api_key: this.gophish_api_key, host: this.gophish_host });
     this.campaignContext = null;
+    console.log(this);
   }
 
   init() {
+    Gophish.fetch_handler = fetch;
+    Gophish.body_packer = Body.json;
+    this.now = new Date().toISOString();
     this.campaignContext = new Campaign();
-    this.campaignContext.name = `Campaign: ${now}`;
+    this.campaignContext.name = `Campaign: ${this.now}`;
+  }
+
+  async addSMTP(sender_email, sender_name) {
+    if (!this.isContextValid()) {
+      throw "Campain Context is invalid.";
+    }
+    var smtp = new SMTP();
+    smtp.name = `SMTP: ${this.now}`;
+    smtp.host = this.smtp_host;
+    if (sender_name) {
+      smtp.from_address = `${sender_name} <${sender_email}>`;
+    } else {
+      smtp.from_address = sender_email;
+    }
+    smtp.ignore_cert_errors = this.ignore_certificate_errors;
+    smtp.username = this.smtp_user_name;
+    smtp.password = this.smtp_user_password;
+    const createdSMTP = await this.gophish.smtp.post(smtp);
+    console.log(createdSMTP);
+    this.campaignContext.smtp = createdSMTP;
+  }
+
+  async addGroup(userInfos) {
+    if (!this.isContextValid()) {
+      throw "Campain Context is invalid.";
+    }
+    var group = new Group();
+    group.name = `Group: ${this.now}`;
+    userInfos.forEach(userInfo => {
+      var user = new User();
+      user.first_name = userInfo.first_name;
+      user.last_name = userInfo.last_name;
+      user.email = userInfo.email;
+      group.targets.push(user);
+    });
+    const createdGroup = await this.gophish.groups.post(group);
+    console.log(createdGroup);
+    this.campaignContext.groups.push(createdGroup);
+  }
+
+  async addTemplate(subject, content, attachments) {
+    if (!this.isContextValid()) {
+      throw "Campain Context is invalid.";
+    }
+    var template = new Template();
+    if (attachments) {
+      template.attachments = template.attachments.concat(attachments);
+    }
+    if (content === '') {
+      content = ' ';
+    }
+    template.name = `Template: ${this.now}`;
+    template.html = content;
+    template.subject = subject;
+    const createdTemplate = await this.gophish.templates.post(template);
+    console.log(createdTemplate);
+    this.campaignContext.template = createdTemplate;
+  }
+
+  async addEmptyPage() {
+    if (!this.isContextValid()) {
+      throw "Campain Context is invalid.";
+    }
+    var page = new Page();
+    page.name = `Page: ${this.now}`;
+    page.html = '';
+    const createdPage = await this.gophish.pages.post(page);
+    console.log(createdPage);
+    this.campaignContext.page = createdPage;
   }
 
   async send() {
-    if (this.campaignContext) {
-      const result = await this.gophish.campaigns.post(this.campaignContext);
-      return result;
+    if (!this.isContextValid()) {
+      throw "Campain Context is invalid.";
     }
+    return await this.gophish.campaigns.post(this.campaignContext);
   }
 
-  async sendEmail(sender_name,
-    sender_email,
-    subject,
-    recipient_first_name,
-    recipient_last_name,
-    recipient_email,
-    email_content,
-    email_attachment) {
-      const gophish = this.gophish_client;
-      var now = new Date().toISOString();
+  async clean() {
+    if (!this.isContextValid()) {
+      throw "Campain Context is invalid.";
+    }
+    await this.gophish.pages.delete(this.campaignContext.page?.id);
+    await this.gophish.templates.delete(this.campaignContext.template?.id);
+    this.campaignContext.groups.forEach(async group => {
+      await this.gophish.groups.delete(group.id);
+    });
+    await this.gophish.smtp.delete(this.campaignContext.smtp?.id);
+    await this.gophish.campaigns.delete(this.campaignContext.id);
+  }
 
-      // Create a Sending Profile
-      var smtp = new SMTP();
-      smtp.name = `SMTP: ${now}`;
-      smtp.host = this.smtp_host;
-      if (sender_name) {
-        smtp.from_address = `${sender_name} <${sender_email}>`;
-      } else {
-        smtp.from_address = sender_email;
-      }
-      smtp.ignore_cert_errors = this.ignore_certificate_errors;
-      smtp.username = this.smtp_user_name;
-      smtp.smtp_user_password = this.smtp_user_password;
-      const createdSMTP = await gophish.smtp.post(smtp);
-
-      // Create a new Group
-      var group = new Group();
-      group.name = `Group: ${now}`;
-      var user = new User();
-      user.first_name = recipient_first_name;
-      user.last_name = recipient_last_name;
-      user.email = recipient_email;
-      group.targets.push(user);
-      const createdGroup = await gophish.groups.post(group);
-
-      // Create a new Email Template
-      var template = new Template();
-      if (email_attachment) {
-        template.attachments.push(email_attachment);
-      }
-      if (email_content === '') {
-        email_content = ' ';
-      }
-      template.name = `Template: ${now}`;
-      template.html = email_content;
-      template.subject = subject;
-      const createdTemplate = await gophish.templates.post(template);
-
-      // Create a new empty Landing Page
-      var page = new Page();
-      page.name = `Page: ${now}`;
-      page.html = '';
-      const createdPage = await gophish.pages.post(page);
-
-      // Create a new Campaign
-      var campaign = new Campaign();
-      campaign.name = `Campaign: ${now}`;
-      campaign.groups.push(createdGroup);
-      campaign.page = createdPage;
-      campaign.template = createdTemplate;
-      campaign.smtp = createdSMTP;
-      const createdCampaign = await gophish.campaigns.post(campaign);
-
-      // Clean up
-      await gophish.smtp.delete(createdSMTP.id);
-      await gophish.groups.delete(createdGroup.id);
-      await gophish.templates.delete(createdTemplate.id);
-      await gophish.pages.delete(createdPage.id);
-      await gophish.campaigns.delete(createdCampaign.id);
+  isContextValid() {
+    return this.campaignContext !== null;
   }
 }

@@ -1,16 +1,21 @@
-import { Container, Stack, Button, Typography, Link, Alert, AlertTitle, Box, IconButton, Snackbar } from "@mui/material";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Container, Alert, Box, Snackbar } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import QrScanner from 'qr-scanner';
 import { exists, BaseDirectory, readTextFile, copyFile, writeTextFile } from "@tauri-apps/api/fs";
 import { open } from '@tauri-apps/api/dialog';
+import dynamic from "next/dynamic";
 
 import MainLayout from "../components/MainLayout";
-import FileUploadIcon from '@mui/icons-material/FileUpload';
-import QrCodeIcon from '@mui/icons-material/QrCode';
-import FolderIcon from '@mui/icons-material/Folder';
 import HomeImport from "../components/HomeImport";
-import HomeEmailAction from "../components/HomeEmailAction";
+
+// DO NOT import tauri wrapped component like this:
+// import HomeEmailAction from "../components/HomeEmailAction";
+// This will cause SSR problem.
+// You should always use `dynamic import` by Next.js
+const HomeEmailAction = dynamic(()=>import("../components/HomeEmailAction"), {
+  ssr: false
+});
 
 const HomePage = () => {
 
@@ -22,12 +27,13 @@ const HomePage = () => {
   const [serverity, setServerity] = useState("info");
   const [configJson, setConfigJson] = useState(null);
 
-  const validateEmail = (value) => {
-    return value.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,4}$/i);
-  };
-
   const loadConfiguration = async () => {
-    setExistConfig(await exists(".mhgn-conf.json", { dir: BaseDirectory.Home }));
+    const exist = await exists(".mhgn-conf.json", { dir: BaseDirectory.Home });
+    if (exist) {
+      const conf = await readTextFile(".mhgn-conf.json", { dir: BaseDirectory.Home });
+      setConfigJson(JSON.parse(conf));
+    }
+    setExistConfig(exist);
   };
 
   const showSnackbar = (message, serverity) => {
@@ -53,10 +59,6 @@ const HomePage = () => {
     setSnackbarOpen(false);
   };
 
-  const onSendEmail = async () => {
-
-  }
-
   const onOpenFileBrowser4Json = async () => {
     const selected = await open({
       filters: [{
@@ -79,32 +81,6 @@ const HomePage = () => {
     }
   }
 
-  const onOpenFileBrowser4HtmlTemplate = async () => {
-    const selected = await open({
-      filters: [{
-        name: "HTML",
-        extensions: ["html", "htm", "txt"]
-      }]
-    });
-    if (selected) {
-      const html = await readTextFile(selected);
-
-    }
-  }
-
-  const onOpenFileBrowser4HtmlTemplateConfig = async () => {
-    const selected = await open({
-      filters: [{
-        name: "TEXT",
-        extensions: ["txt"]
-      }]
-    });
-    if (selected) {
-      const htmlConfig = await readTextFile(selected);
-
-    }
-  }
-
   const onFileInput4QrCodeChange = (event) => {
     if (event.target.files && event.target.files[0]) {
       if (event.target.files[0].type.search("image/") === -1) {
@@ -118,6 +94,8 @@ const HomePage = () => {
           return;
         }
         await writeTextFile(".mhgn-conf.json", result, { dir: BaseDirectory.Home });
+        setExistConfig(true);
+        showSnackbar("Successfully imported configuration", "success");
       }).catch(err => {
         showSnackbar(err, "error");
       });
@@ -140,7 +118,7 @@ const HomePage = () => {
             router={router}
           />
           :
-          <HomeEmailAction />
+          <HomeEmailAction conf={configJson} />
       }
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

@@ -14,6 +14,14 @@ const MainLayout = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof(window) !== undefined) {
+      if (process.env.NODE_ENV === "development") {
+        // nothing now
+      } else {
+        document.addEventListener('contextmenu', event => event.preventDefault());
+      }
+    }
+
     const handleRouteChange = (url, { shallow }) => {
       setTabValue(url);
     }
