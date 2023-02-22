@@ -13,8 +13,10 @@ const MainLayout = ({ children }) => {
   const [tabValue, setTabValue] = useState("/home");
   const router = useRouter();
 
+  const registeredUrls = ["/home", "/settings", "/about"];
+
   useEffect(() => {
-    if (typeof(window) !== undefined) {
+    if (typeof (window) !== undefined) {
       if (process.env.NODE_ENV === "development") {
         // nothing now
       } else {
@@ -23,7 +25,9 @@ const MainLayout = ({ children }) => {
     }
 
     const handleRouteChange = (url, { shallow }) => {
-      setTabValue(url);
+      if (registeredUrls.indexOf(url) !== -1) {
+        setTabValue(url);
+      }
     }
 
     // Register routeChangeStart event

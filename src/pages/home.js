@@ -68,8 +68,8 @@ const HomePage = () => {
     });
     if (selected) {
       const configFile = await readTextFile(selected);
-      var json = JSON.parse(configFile);
-      var result = importFromJson(json);
+      let json = JSON.parse(configFile);
+      let result = importFromJson(json);
       if (!result) {
         return;
       }
@@ -88,8 +88,8 @@ const HomePage = () => {
         return;
       }
       QrScanner.scanImage(event.target.files[0]).then(async (result) => {
-        var json = JSON.parse(result);
-        var res = importFromJson(json);
+        let json = JSON.parse(result);
+        let res = importFromJson(json);
         if (!res) {
           return;
         }
