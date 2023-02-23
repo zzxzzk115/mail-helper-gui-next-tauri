@@ -71,11 +71,11 @@ const SettingsPage = () => {
           <ListItemText primary="Configuration Settings" />
           <NavigateNextIcon />
         </ListItemButton>
-        <Divider />
+        {/* <Divider />
         <ListItemButton>
           <ListItemText primary="Export Configuration" />
           <NavigateNextIcon />
-        </ListItemButton>
+        </ListItemButton> */}
         <Divider />
         <ListItemButton onClick={() => setClearSettingsDialogState(true)}>
           <ListItemText primary="Clear Settings" />
