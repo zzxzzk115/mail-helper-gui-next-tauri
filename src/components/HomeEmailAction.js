@@ -147,8 +147,9 @@ const HomeEmailAction = (props) => {
 
     let ok = false;
     let errMsg = "";
+    var mailHelperCore = null;
     try {
-      let mailHelperCore = new MailHelperCore(conf);
+      mailHelperCore = new MailHelperCore(conf);
       mailHelperCore.init();
 
       setBackdropOpen(true);
@@ -183,16 +184,18 @@ const HomeEmailAction = (props) => {
       console.log(result);
       await mailHelperCore.clean();
       ok = true;
-      showSnackbar("success", "Email sent successfully!");
       setBackdropOpen(false);
+      showSnackbar("success", "Email sent successfully!");
     } catch (e) {
-      console.error(e);
+      console.error(e.message);
       errMsg = e.message;
+      setBackdropOpen(false);
+      showSnackbar("error", errMsg);
     } finally {
       if (!ok) {
-        await mailHelperCore.clean();
-        showSnackbar("error", errMsg);
-        setBackdropOpen(false);
+        if (mailHelperCore) {
+          await mailHelperCore.clean();
+        }
       }
     }
   };
